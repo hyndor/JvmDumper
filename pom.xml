@@ -13,8 +13,11 @@
             <groupId>com.sun</groupId>
             <artifactId>tools</artifactId>
             <version>1.8</version>
-            <scope>system</scope>
-            <systemPath>${java.home}/../lib/tools.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.sun</groupId>
+            <artifactId>sa-jdi</artifactId>
+            <version>1.8</version>
         </dependency>
         <dependency>
             <groupId>org.ow2.asm</groupId>
@@ -33,13 +36,7 @@
             <artifactId>decompiler-fernflower</artifactId>
             <version>2.3.0.Final</version>
         </dependency>
-        <dependency>
-            <groupId>com.sun</groupId>
-            <artifactId>sa-jdi</artifactId>
-            <version>1.8</version>
-            <scope>system</scope>
-            <systemPath>${java.home}/../lib/sa-jdi.jar</systemPath>
-        </dependency>
+
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -49,6 +46,27 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>ru.hyndo.javadumper.JavaDumperApplication</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
