@@ -2,17 +2,21 @@ package ru.hyndo.javadumper;
 
 import com.sun.tools.attach.VirtualMachineDescriptor;
 import ru.hyndo.javadumper.outmode.OutMode;
+import sun.jvm.hotspot.debugger.DebuggerException;
 import sun.jvm.hotspot.runtime.VM;
+import sun.jvm.hotspot.runtime.VMVersionMismatchException;
 import sun.jvm.hotspot.tools.Tool;
 import sun.jvm.hotspot.tools.jcore.ClassDump;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
 
 public class VmDataProvider extends Tool {
 
@@ -46,15 +50,29 @@ public class VmDataProvider extends Tool {
         this.tempDataOutput = tempDataOutput;
     }
 
+    public static void main(String[] args) {
+        VmDataProvider vmDataProvider = new VmDataProvider(new VMsProviderImpl().getVMs().stream()
+                .filter(virtualMachineDescriptor -> virtualMachineDescriptor.id().equalsIgnoreCase("7864")).findAny().get(), DumpMode.CLASS_LIST);
+        System.setProperty("sun.jvm.hotspot.runtime.VM.disableVersionCheck", "true");
+        System.out.println("stat");
+        try {
+            vmDataProvider.startParsing("7864");
+        } catch (Throwable e) {
+            System.out.println("exception");
+        }
+        System.out.println("end");
+    }
+
     private void startParsing(String PID) {
         try {
             //noinspection JavaReflectionInvocation
             startMethod.invoke(this, ((Object) (new String[]{PID})));
-        } catch (Throwable e) {
+        } catch (VMVersionMismatchException | DebuggerException | IllegalAccessException | InvocationTargetException e) {
             JOptionPane.showMessageDialog(null, e.getMessage());
-        } finally {
             stop();
+            return;
         }
+        stop();
     }
 
     Set<String> getClassNames() {

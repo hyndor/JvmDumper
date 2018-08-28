@@ -6,12 +6,17 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
+import javax.swing.*;
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
+import java.io.PrintStream;
 import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class JavaDumperApplication extends Application {
+
+    private ExecutorService executorService = Executors.newCachedThreadPool();
 
     private static final java.lang.reflect.Field LIBRARIES;
 
@@ -33,18 +38,36 @@ public class JavaDumperApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Path bin = Paths.get(System.getProperty("java.home"), "bin").toAbsolutePath();
-        System.out.println(bin.resolve("attach.dll").toString());
-        System.load(bin.resolve("attach.dll").toString());
-        Thread.sleep(300);
-        if(!Arrays.toString(getLoadedLibraries(getClass().getClassLoader())).contains("attach")) {
-            System.err.println("Can not load attach.dll");
-            System.exit(-1);
+        if (Float.parseFloat(System.getProperty("java.class.version")) != 52.0) {
+            JOptionPane.showMessageDialog(null, "Java Dumper requires Java 8 to work correctly");
+            System.exit(0);
             return;
         }
+        try {
+            JavaCompiler c = ToolProvider.getSystemJavaCompiler();
+            if (c == null) {
+                JOptionPane.showMessageDialog(null, "Probably you are running on JRE. Java Dumper requires JDK to work correctly");
+                System.exit(1);
+                return;
+            }
+        } catch (Throwable t) {
+            JOptionPane.showMessageDialog(null, "Probably you are running on JRE. Java Dumper requires JDK to work correctly");
+            System.exit(1);
+            return;
+        }
+        System.setProperty("sun.jvm.hotspot.runtime.VM.disableVersionCheck", "true");
         FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("scene.fxml"));
         Parent root = loader.load();
         MainFormController mainFormController = loader.getController();
+        ProxiedSout proxy = new ProxiedSout(System.out);
+        System.setErr(new PrintStream(proxy, true));
+        proxy.addNewLineHandler((str, a) -> {
+            if(str.contains("Error attaching to process")) {
+                executorService.submit(() -> {
+                    JOptionPane.showMessageDialog(null, "Error attaching to process: " + "\"" + str + "\"");
+                });
+            }
+        });
         mainFormController.setVMsProvider(new VMsProviderImpl());
         mainFormController.init();
         Scene scene = new Scene(root);
@@ -61,7 +84,7 @@ public class JavaDumperApplication extends Application {
         try {
             //noinspection unchecked
             libraries = (Vector<String>) LIBRARIES.get(loader);
-            return libraries.toArray(new String[] {});
+            return libraries.toArray(new String[]{});
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
