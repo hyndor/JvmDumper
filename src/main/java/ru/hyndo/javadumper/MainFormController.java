@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@SuppressWarnings({"RegExpSingleCharAlternation", "RegExpRedundantEscape"})
 public class MainFormController implements Initializable {
 
     private static final String[] KEYWORDS = new String[] {
@@ -107,7 +108,10 @@ public class MainFormController implements Initializable {
                         applicationPid
                                 .getItems()
                                 .add(vm));
-        applicationPid.setValue(applicationPid.getItems().iterator().next());
+        Iterator<VirtualMachineDescriptor> vmiter = applicationPid.getItems().iterator();
+        if(vmiter.hasNext()) {
+            applicationPid.setValue(vmiter.next());
+        }
     }
 
     private String vmToString(VirtualMachineDescriptor vm) {
@@ -142,8 +146,10 @@ public class MainFormController implements Initializable {
             if(newValue == null) return;
             if(newValue.getChildren().isEmpty()) {
                 String fullClassName = newValue.getParent().getValue() + "." + newValue.getValue();
-                VmDataProvider vmDataProvider = new VmDataProvider(applicationPid.getValue(), VmDataProvider.DumpMode.DUMP_CLASS, fullClassName, tempOutPutDirectory);
-                vmDataProvider.dumpClass(outputMode.getValue());
+                if(applicationPid.getValue() !=  null) {
+                    VmDataProvider vmDataProvider = new VmDataProvider(applicationPid.getValue(), VmDataProvider.DumpMode.DUMP_CLASS, fullClassName, tempOutPutDirectory);
+                    vmDataProvider.dumpClass(outputMode.getValue());
+                }
             }
         });
     }
