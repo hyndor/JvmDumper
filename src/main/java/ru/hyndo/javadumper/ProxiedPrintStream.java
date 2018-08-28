@@ -1,22 +1,20 @@
 package ru.hyndo.javadumper;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
-public class ProxiedSout extends OutputStream {
+public class ProxiedPrintStream extends OutputStream {
 
     private PrintStream source;
     private StringBuffer currentLine = new StringBuffer();
-    private BiConsumer<String, ProxiedSout> newLineHandler = (a, b) -> {};
+    private BiConsumer<String, ProxiedPrintStream> newLineHandler = (a, b) -> {};
 
-    ProxiedSout(PrintStream source) {
+    ProxiedPrintStream(PrintStream source) {
         this.source = source;
     }
 
-    public void addNewLineHandler(BiConsumer<String, ProxiedSout> newLineHandler) {
+    public void addNewLineHandler(BiConsumer<String, ProxiedPrintStream> newLineHandler) {
         this.newLineHandler = this.newLineHandler.andThen(newLineHandler);
     }
 

@@ -59,7 +59,7 @@ public class JavaDumperApplication extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("scene.fxml"));
         Parent root = loader.load();
         MainFormController mainFormController = loader.getController();
-        ProxiedSout proxy = new ProxiedSout(System.out);
+        ProxiedPrintStream proxy = new ProxiedPrintStream(System.out);
         System.setErr(new PrintStream(proxy, true));
         proxy.addNewLineHandler((str, a) -> {
             if(str.contains("Error attaching to process")) {
