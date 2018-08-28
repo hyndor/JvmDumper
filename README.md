@@ -13,7 +13,7 @@ Replace *C:\Program Files\Java\jdk1.8.0_144* with your path to jdk.
 
 **You can also download already built jar in release section - https://github.com/hyndor/JvmDumper/releases**
 
-**It requires Java 8 to work correctly**
+**It requires Java 8 and java JDK(NOT JRE!!!) to work correctly**
 
 ![Asmifier Image](https://i.imgur.com/BjoJWTc.png)
 
